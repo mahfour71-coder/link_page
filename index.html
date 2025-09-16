@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="كل روابط محفورات في مكان واحد! اكتشف منتجاتنا المتقطعة بدقة باستخدام تقنية CNC. تواصل معانا عبر فيسبوك، إنستغرام، تيك توك، وواتساب.">
     <title>محفورات - الروابط الرئيسية</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&display=swap">
+    <link rel="icon" href="https://i.postimg.cc/Jh9GmJML/photo-2025-09-07-07-59-17.jpg" type="image/x-icon">
     <style>
         * {
             margin: 0;
@@ -29,6 +31,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            animation: fadeInPage 1s ease-in;
         }
 
         .container {
@@ -55,6 +58,15 @@
             margin-bottom: 10px;
         }
 
+        .logo img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-left: 10px;
+            object-fit: contain;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
         .description {
             font-size: 16px;
             margin-bottom: 30px;
@@ -74,27 +86,88 @@
             justify-content: center;
             gap: 10px;
             padding: 12px;
-            background: #7c5e42;
             color: #fff;
             text-decoration: none;
             border-radius: 6px;
             font-size: 16px;
             transition: background 0.3s, transform 0.3s;
+            animation: slideIn 0.5s ease-in forwards;
         }
 
         .link-btn:hover {
-            background: #e68900;
             transform: scale(1.05);
         }
 
+        .link-btn.facebook { background: #3b5998; }
+        .link-btn.facebook:hover { background: #2a4373; }
+        .link-btn.whatsapp { background: #25D366; }
+        .link-btn.whatsapp:hover { background: #1DA851; }
+        .link-btn.instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
+        .link-btn.instagram:hover { background: linear-gradient(45deg, #d9862b, #cc5933, #c2213a, #b61e5a, #a61678); }
+        .link-btn.tiktok { background: #000000; }
+        .link-btn.tiktok:hover { background: #333333; }
+        .link-btn.website { background: #7c5e42; }
+        .link-btn.website:hover { background: #e68900; }
+
         .link-btn i {
             font-size: 18px;
+        }
+
+        .qr-instruction {
+            font-size: 14px;
+            color: #5a3921;
+            margin-top: 20px;
+        }
+
+        .share-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 10px;
+            background: #452808;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-top: 15px;
+            transition: background 0.3s, transform 0.3s;
+        }
+
+        .share-btn:hover {
+            background: #5a3921;
+            transform: scale(1.05);
         }
 
         .footer {
             margin-top: 30px;
             font-size: 14px;
             color: #5a3921;
+        }
+
+        @keyframes fadeInPage {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(to bottom, #6d4c41);
+            }
+            .container {
+                background: #e9dac9;
+            }
+            .logo {
+                color: #fefaf5;
+            }
+            .description, .footer, .qr-instruction {
+                color: #452808;
+            }
         }
 
         @media (max-width: 480px) {
@@ -107,6 +180,11 @@
                 padding: 5px 10px;
             }
 
+            .logo img {
+                width: 50px;
+                height: 50px;
+            }
+
             .description {
                 font-size: 14px;
             }
@@ -115,33 +193,58 @@
                 font-size: 14px;
                 padding: 10px;
             }
+
+            .share-btn {
+                font-size: 13px;
+                padding: 8px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo">محفورات</div>
+        <div class="logo">
+            <img src="https://i.postimg.cc/Jh9GmJML/photo-2025-09-07-07-59-17.jpg" alt="محفورات">
+            محفورات
+        </div>
         <p class="description">منتجات متقطعة بدقة عالية باستخدام تقنية CNC. اكتشف عالم الإبداع والجودة!</p>
         <div class="links">
-            <a href="https://www.facebook.com/profile.php?id=61579586090483&mibextid=ZbWKwL" class="link-btn" target="_blank">
+            <a href="https://www.facebook.com/profile.php?id=61579586090483&mibextid=ZbWKwL" class="link-btn facebook" target="_blank">
                 <i class="fab fa-facebook-f"></i> فيسبوك
             </a>
-            <a href="https://wa.me/201033662370" class="link-btn" target="_blank">
+            <a href="https://wa.me/201033662370" class="link-btn whatsapp" target="_blank">
                 <i class="fab fa-whatsapp"></i> واتساب
             </a>
-            <a href="https://www.instagram.com/ma7foorat_cnc?igsh=cXE4OHJ5Nmw3NTFy" class="link-btn" target="_blank">
+            <a href="https://www.instagram.com/ma7foorat_cnc?igsh=cXE4OHJ5Nmw3NTFy" class="link-btn instagram" target="_blank">
                 <i class="fab fa-instagram"></i> إنستغرام
             </a>
-            <a href="https://www.tiktok.com/@mahfour0?is_from_webapp=1&sender_device=pc" class="link-btn" target="_blank">
+            <a href="https://www.tiktok.com/@mahfour0?is_from_webapp=1&sender_device=pc" class="link-btn tiktok" target="_blank">
                 <i class="fab fa-tiktok"></i> تيك توك
             </a>
-            <a href="https://mahfour71-coder.github.io/MA7FOORAT/" class="link-btn" target="_blank">
+            <a href="https://mahfour71-coder.github.io/MA7FOORAT/" class="link-btn website" target="_blank">
                 <i class="fas fa-shopping-cart"></i> الموقع الرئيسي للمتجر
             </a>
         </div>
+        <a href="javascript:void(0)" class="share-btn" onclick="sharePage()">
+            <i class="fas fa-share-alt"></i> شارك الصفحة
+        </a>
+        <p class="qr-instruction">امسح الـ QR كود للوصول لكل روابط محفورات!</p>
         <div class="footer">
             <p>جميع الحقوق محفوظة © 2025 محفورات</p>
         </div>
     </div>
+    <script>
+        function sharePage() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'محفورات - كل الروابط',
+                    text: 'اكتشف منتجات محفورات المتقطعة بدقة باستخدام CNC! تواصل معانا عبر جميع المنصات.',
+                    url: window.location.href
+                }).catch(console.error);
+            } else {
+                alert('خاصية المشاركة غير مدعومة في متصفحك. يمكنك نسخ الرابط يدويًا!');
+            }
+        }
+    </script>
 </body>
 </html>
