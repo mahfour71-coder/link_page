@@ -1,250 +1,165 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="كل روابط محفورات في مكان واحد! اكتشف منتجاتنا المتقطعة بدقة باستخدام تقنية CNC. تواصل معانا عبر فيسبوك، إنستغرام، تيك توك، وواتساب.">
-    <title>محفورات - الروابط الرئيسية</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&display=swap">
-    <link rel="icon" href="https://i.postimg.cc/Jh9GmJML/photo-2025-09-07-07-59-17.jpg" type="image/x-icon">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Amiri', 'Dubai', sans-serif;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📊 قراءة Excel + استخراج نصوص من الصور</title>
 
-        :root {
-            --font-main: 'Dubai', 'Amiri', sans-serif;
-            --color-primary: #13352f;
-            --color-primary-dark: #000f09;
-            --color-primary-light: #395b55;
-            --color-primary-reverse: #dffffb;
-        }
+  <!-- مكتبة قراءة Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-        body {
-            background: linear-gradient(to bottom, #7c5e42);
-            color: #333;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            animation: fadeInPage 1s ease-in;
-        }
+  <!-- مكتبة قراءة النصوص من الصور (OCR) -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.2/dist/tesseract.min.js"></script>
 
-        .container {
-            background: #d9c8a9;
-            border-radius: 8px;
-            padding: 40px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            max-width: 400px;
-            width: 90%;
-        }
-
-        .logo {
-            font-size: 38px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            font-family: var(--font-main);
-            color: #452808;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            padding: 5px 15px;
-            border-radius: 8px;
-            display: inline-flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .logo img {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            margin-left: 10px;
-            object-fit: contain;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-        .description {
-            font-size: 16px;
-            margin-bottom: 30px;
-            color: #5a3921;
-            line-height: 1.6;
-        }
-
-        .links {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .link-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 12px;
-            color: #fff;
-            text-decoration: none;
-            border-radius: 6px;
-            font-size: 16px;
-            transition: background 0.3s, transform 0.3s;
-            animation: slideIn 0.5s ease-in forwards;
-        }
-
-        .link-btn:hover {
-            transform: scale(1.05);
-        }
-
-        .link-btn.facebook { background: #3b5998; }
-        .link-btn.facebook:hover { background: #2a4373; }
-        .link-btn.whatsapp { background: #25D366; }
-        .link-btn.whatsapp:hover { background: #1DA851; }
-        .link-btn.instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
-        .link-btn.instagram:hover { background: linear-gradient(45deg, #d9862b, #cc5933, #c2213a, #b61e5a, #a61678); }
-        .link-btn.tiktok { background: #000000; }
-        .link-btn.tiktok:hover { background: #333333; }
-        .link-btn.website { background: #7c5e42; }
-        .link-btn.website:hover { background: #e68900; }
-
-        .link-btn i {
-            font-size: 18px;
-        }
-
-        .qr-instruction {
-            font-size: 14px;
-            color: #5a3921;
-            margin-top: 20px;
-        }
-
-        .share-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 10px;
-            background: #452808;
-            color: #fff;
-            text-decoration: none;
-            border-radius: 6px;
-            font-size: 14px;
-            margin-top: 15px;
-            transition: background 0.3s, transform 0.3s;
-        }
-
-        .share-btn:hover {
-            background: #5a3921;
-            transform: scale(1.05);
-        }
-
-        .footer {
-            margin-top: 30px;
-            font-size: 14px;
-            color: #5a3921;
-        }
-
-        @keyframes fadeInPage {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @media (prefers-color-scheme: dark) {
-            body {
-                background: linear-gradient(to bottom, #6d4c41);
-            }
-            .container {
-                background: #e9dac9;
-            }
-            .logo {
-                color: #fefaf5;
-            }
-            .description, .footer, .qr-instruction {
-                color: #452808;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 20px;
-            }
-
-            .logo {
-                font-size: 32px;
-                padding: 5px 10px;
-            }
-
-            .logo img {
-                width: 50px;
-                height: 50px;
-            }
-
-            .description {
-                font-size: 14px;
-            }
-
-            .link-btn {
-                font-size: 14px;
-                padding: 10px;
-            }
-
-            .share-btn {
-                font-size: 13px;
-                padding: 8px;
-            }
-        }
-    </style>
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background-color: #f4f6f8;
+      padding: 30px;
+      text-align: center;
+      direction: rtl;
+    }
+    h1 {
+      color: #0078d7;
+    }
+    .box {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin: 20px auto;
+      width: 90%;
+      max-width: 750px;
+    }
+    input[type="file"] {
+      margin: 10px 0;
+    }
+    table {
+      border-collapse: collapse;
+      margin: 20px auto;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #0078d7;
+      color: white;
+    }
+    .preview {
+      margin-top: 20px;
+      border: 1px dashed #ccc;
+      padding: 10px;
+      border-radius: 10px;
+      background-color: #fafafa;
+    }
+    img {
+      max-width: 100%;
+      border-radius: 10px;
+    }
+    .loading {
+      color: #0078d7;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo">
-            <img src="https://i.postimg.cc/Jh9GmJML/photo-2025-09-07-07-59-17.jpg" alt="محفورات">
-            محفورات
-        </div>
-        <p class="description">منتجات متقطعة بدقة عالية باستخدام تقنية CNC. اكتشف عالم الإبداع والجودة!</p>
-        <div class="links">
-            <a href="https://www.facebook.com/profile.php?id=61579586090483&mibextid=ZbWKwL" class="link-btn facebook" target="_blank">
-                <i class="fab fa-facebook-f"></i> فيسبوك
-            </a>
-            <a href="https://wa.me/201033662370" class="link-btn whatsapp" target="_blank">
-                <i class="fab fa-whatsapp"></i> واتساب
-            </a>
-            <a href="https://www.instagram.com/ma7foorat_cnc?igsh=cXE4OHJ5Nmw3NTFy" class="link-btn instagram" target="_blank">
-                <i class="fab fa-instagram"></i> إنستغرام
-            </a>
-            <a href="https://www.tiktok.com/@mahfour0?is_from_webapp=1&sender_device=pc" class="link-btn tiktok" target="_blank">
-                <i class="fab fa-tiktok"></i> تيك توك
-            </a>
-            <a href="https://mahfour71-coder.github.io/MA7FOORAT/" class="link-btn website" target="_blank">
-                <i class="fas fa-shopping-cart"></i> الموقع الرئيسي للمتجر
-            </a>
-        </div>
-        <a href="javascript:void(0)" class="share-btn" onclick="sharePage()">
-            <i class="fas fa-share-alt"></i> شارك الصفحة
-        </a>
-        <p class="qr-instruction">امسح الـ QR كود للوصول لكل روابط محفورات!</p>
-        <div class="footer">
-            <p>جميع الحقوق محفوظة © 2025 محفورات</p>
-        </div>
-    </div>
-    <script>
-        function sharePage() {
-            if (navigator.share) {
-                navigator.share({
-                    title: 'محفورات - كل الروابط',
-                    text: 'اكتشف منتجات محفورات المتقطعة بدقة باستخدام CNC! تواصل معانا عبر جميع المنصات.',
-                    url: window.location.href
-                }).catch(console.error);
-            } else {
-                alert('خاصية المشاركة غير مدعومة في متصفحك. يمكنك نسخ الرابط يدويًا!');
-            }
+  <h1>📊 قراءة Excel + استخراج بيانات من الصور تلقائيًا</h1>
+
+  <div class="box">
+    <h3>📁 ارفع ملف Excel</h3>
+    <input type="file" id="excelInput" accept=".xlsx,.xls" />
+    <p id="excelStatus">لم يتم رفع ملف بعد</p>
+    <table id="excelTable"></table>
+
+    <hr />
+
+    <h3>🖼️ ارفع صورة</h3>
+    <input type="file" id="imageInput" accept="image/*" />
+    <div class="preview" id="imagePreview">لم يتم رفع صورة بعد</div>
+    <p id="ocrStatus"></p>
+  </div>
+
+  <script>
+    // قراءة ملف Excel
+    const excelInput = document.getElementById("excelInput");
+    const excelTable = document.getElementById("excelTable");
+    const excelStatus = document.getElementById("excelStatus");
+    let excelData = []; // لحفظ البيانات مؤقتًا
+
+    excelInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const data = new Uint8Array(event.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        excelData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        excelStatus.textContent = "✅ تم قراءة ملف Excel بنجاح";
+        displayTable(excelData);
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    function displayTable(data) {
+      excelTable.innerHTML = "";
+      data.forEach((row, i) => {
+        const tr = document.createElement("tr");
+        row.forEach((cell) => {
+          const el = document.createElement(i === 0 ? "th" : "td");
+          el.textContent = cell;
+          tr.appendChild(el);
+        });
+        excelTable.appendChild(tr);
+      });
+    }
+
+    // استخراج النص من الصورة
+    const imageInput = document.getElementById("imageInput");
+    const imagePreview = document.getElementById("imagePreview");
+    const ocrStatus = document.getElementById("ocrStatus");
+
+    imageInput.addEventListener("change", () => {
+      if (imageInput.files.length > 0) {
+        const file = imageInput.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          imagePreview.innerHTML = `<img src="${e.target.result}" alt="Uploaded image" />`;
+          extractText(e.target.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // قراءة النص من الصورة باستخدام tesseract.js
+    function extractText(imageData) {
+      ocrStatus.innerHTML = "🔄 جاري تحليل الصورة...";
+      Tesseract.recognize(imageData, 'ara', {
+        logger: (m) => console.log(m)
+      }).then(({ data: { text } }) => {
+        ocrStatus.innerHTML = "✅ تم استخراج النص:";
+        const p = document.createElement("p");
+        p.textContent = text.trim();
+        imagePreview.appendChild(p);
+
+        // نضيف النص ده كصف جديد في الجدول
+        if (excelData.length > 0) {
+          excelData.push([text]);
+          displayTable(excelData);
+        } else {
+          excelData = [["نص مستخرج"], [text]];
+          displayTable(excelData);
         }
-    </script>
+      }).catch(err => {
+        ocrStatus.innerHTML = "❌ حدث خطأ أثناء تحليل الصورة";
+        console.error(err);
+      });
+    }
+  </script>
 </body>
 </html>
