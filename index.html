@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>📊 نظام ذكي لقراءة Excel واستخراج النصوص بدقة فائقة</title>
+  <title>📊 نظام ذكي لقراءة Excel واستخراج النصوص</title>
 
   <!-- مكتبة قراءة Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -127,7 +127,7 @@
   </style>
 </head>
 <body>
-  <h1>📊 نظام ذكي لقراءة Excel واستخراج النصوص بدقة فائقة</h1>
+  <h1>📊 نظام ذكي لقراءة Excel واستخراج النصوص</h1>
 
   <div class="box">
     <h3>📁 ارفع ملف Excel</h3>
@@ -174,10 +174,10 @@
     // فحص تحميل المكتبات
     window.addEventListener("load", () => {
       if (!window.XLSX) {
-        addToLog("خطأ: مكتبة XLSX لم تتحمل", "error");
+        addToLog("خطأ: مكتبة XLSX لم تتحمل. تحقق من الاتصال بالإنترنت", "error");
       }
       if (!window.Tesseract) {
-        addToLog("خطأ: مكتبة Tesseract لم تتحمل", "error");
+        addToLog("خطأ: مكتبة Tesseract لم تتحمل. تحقق من الاتصال بالإنترنت", "error");
       }
     });
 
@@ -279,6 +279,12 @@
           addToLog(`ملف غير صالح: ${file.name}`, "error");
           continue;
         }
+        if (file.size > 5 * 1024 * 1024) {
+          ocrStatus.textContent = `⚠ الملف ${file.name} كبير جدًا (الحد الأقصى 5 ميجابايت)`;
+          ocrStatus.className = "error";
+          addToLog(`ملف كبير جدًا: ${file.name}`, "error");
+          continue;
+        }
 
         await new Promise((resolve) => {
           const reader = new FileReader();
@@ -315,7 +321,7 @@
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        const maxDimension = 1200; // الحد الأقصى للأبعاد
+        const maxDimension = 800; // تقليص الحد الأقصى لتسريع المعالجة
         let { width, height } = img;
         if (width > maxDimension || height > maxDimension) {
           const ratio = Math.min(maxDimension / width, maxDimension / height);
@@ -336,7 +342,7 @@
         ctx.putImageData(imageDataCtx, 0, 0);
 
         // فحص جودة الصورة
-        if (canvas.width < 600 || canvas.height < 600) {
+        if (canvas.width < 300 || canvas.height < 300) {
           ocrStatus.textContent = "⚠ الصورة صغيرة جدًا، جرب صورة أكبر لدقة أعلى";
           ocrStatus.className = "error";
           addToLog("الصورة صغيرة جدًا، قد تؤثر على دقة الـ OCR", "error");
@@ -351,23 +357,30 @@
       ocrStatus.className = "loading";
       addToLog(`بدء تحليل الصورة ${fileName}`, "info");
 
-      const worker = await Tesseract.createWorker('ara', 1, {
-        langPath: 'https://raw.githubusercontent.com/ClearCypher/enhancing-tesseract-arabic-text-recognition/main/',
-        workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.2/dist/worker.min.js',
-        corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.0.0/tesseract-core.wasm.js',
-        tessedit_pageseg_mode: '6',
-        logger: (m) => {
-          if (m.status === 'recognizing text') {
-            ocrStatus.innerHTML = `🔄 جاري تحليل الصورة ${fileName}... ${Math.round(m.progress * 100)}%`;
-          }
-        }
-      });
-
       try {
+        const worker = await Tesseract.createWorker('ara', 1, {
+          langPath: 'https://tessdata.projectnaptha.com/4.0.0_best/ara.traineddata.gz',
+          workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.2/dist/worker.min.js',
+          corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.0.0/tesseract-core.wasm.js',
+          tessedit_pageseg_mode: '6',
+          logger: (m) => {
+            if (m.status === 'recognizing text') {
+              ocrStatus.innerHTML = `🔄 جاري تحليل الصورة ${fileName}... ${Math.round(m.progress * 100)}%`;
+            }
+          }
+        });
+
         const { data: { text } } = await worker.recognize(imageData);
         await worker.terminate();
 
         extractedText = text.trim();
+        if (!extractedText) {
+          ocrStatus.innerHTML = `⚠ لم يتم استخراج أي نص من ${fileName}. جرب صورة أوضح`;
+          ocrStatus.className = "error";
+          addToLog(`لم يتم استخراج نص من ${fileName}`, "error");
+          return;
+        }
+
         ocrStatus.innerHTML = `✅ تم استخراج النص من ${fileName}`;
         ocrStatus.className = "success";
         addToLog(`تم استخراج النص من ${fileName} بنجاح`, "success");
@@ -376,7 +389,7 @@
         textPreview.innerHTML = `<h4>النص المستخرج:</h4><p>${extractedText.replace(/\n/g, '<br>')}</p>`;
         confirmTextBtn.style.display = "block";
       } catch (err) {
-        ocrStatus.innerHTML = `❌ خطأ في تحليل ${fileName}: جرب صورة أوضح`;
+        ocrStatus.innerHTML = `❌ خطأ في تحليل ${fileName}: جرب صورة أوضح أو تحقق من الاتصال`;
         ocrStatus.className = "error";
         addToLog(`خطأ في تحليل ${fileName}: ${err.message}`, "error");
       }
