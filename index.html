@@ -3,59 +3,83 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>📊 نظام قراءة Excel واستخراج نصوص</title>
+  <title>📊 نظام قراءة Excel واستخراج نصوص - الإصدار الاحترافي</title>
 
   <!-- مكتبة قراءة Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <!-- مكتبة قراءة النصوص من الصور (OCR) -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.2/dist/tesseract.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js"></script>
 
   <style>
+    :root {
+      --bg-primary: linear-gradient(135deg, #e0e7ff, #f4f6f8);
+      --bg-secondary: white;
+      --text-primary: #1e3a8a;
+      --text-success: #15803d;
+      --text-error: #dc2626;
+      --text-info: #1e40af;
+      --border: #e2e8f0;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    [data-theme="dark"] {
+      --bg-primary: linear-gradient(135deg, #1e293b, #334155);
+      --bg-secondary: #475569;
+      --text-primary: #e2e8f0;
+      --text-success: #34d399;
+      --text-error: #f87171;
+      --text-info: #60a5fa;
+      --border: #64748b;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
     body {
       font-family: 'Segoe UI', Tahoma, sans-serif;
-      background: linear-gradient(135deg, #e0e7ff, #f4f6f8);
-      padding: 30px;
+      background: var(--bg-primary);
+      padding: 20px;
       text-align: center;
       direction: rtl;
       margin: 0;
+      color: var(--text-primary);
+      transition: all 0.3s ease;
     }
     h1 {
-      color: #1e3a8a;
       font-size: 2rem;
       margin-bottom: 20px;
     }
     .box {
-      background: white;
+      background: var(--bg-secondary);
       border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--shadow);
       padding: 30px;
       margin: 20px auto;
-      width: 90%;
-      max-width: 600px;
+      width: 95%;
+      max-width: 900px;
       transition: transform 0.3s ease;
     }
     .box:hover {
       transform: translateY(-5px);
     }
-    input[type="file"], button {
+    input[type="file"], button, input[type="text"], textarea {
       margin: 10px 5px;
       padding: 12px 20px;
       font-size: 16px;
       border-radius: 8px;
-      border: none;
+      border: 1px solid var(--border);
       cursor: pointer;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      box-sizing: border-box;
     }
     input[type="file"] {
       background: #f1f5f9;
-      padding: 10px;
     }
     button {
-      background-color: #1e3a8a;
+      background-color: var(--text-primary);
       color: white;
+      border: none;
       transition: background-color 0.3s ease;
     }
-    button:hover {
+    button:hover:not(:disabled) {
       background-color: #1e40af;
     }
     button:disabled {
@@ -66,30 +90,47 @@
       border-collapse: collapse;
       margin: 20px auto;
       width: 100%;
-      background: white;
+      background: var(--bg-secondary);
       border-radius: 8px;
       overflow: hidden;
+      box-shadow: var(--shadow);
+      max-height: 400px;
+      overflow-y: auto;
+      display: block;
     }
+    thead, tbody { display: block; width: 100%; }
+    thead { background: var(--text-primary); color: white; }
+    tbody { overflow-y: auto; overflow-x: auto; }
     th, td {
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--border);
       padding: 8px;
       text-align: center;
+      min-width: 120px;
+      display: table-cell;
     }
     th {
-      background-color: #1e3a8a;
-      color: white;
       font-weight: 600;
+      position: sticky; top: 0;
     }
     td {
       background-color: #f8fafc;
+      cursor: pointer;
+    }
+    td:hover {
+      background-color: #e2e8f0;
+    }
+    .editable {
+      background: white;
+      border: 1px solid var(--text-primary);
     }
     .preview {
       margin-top: 20px;
-      border: 2px dashed #cbd5e1;
+      border: 2px dashed var(--border);
       padding: 15px;
       border-radius: 12px;
       background-color: #f8fafc;
       min-height: 100px;
+      text-align: right;
     }
     img {
       max-width: 300px;
@@ -97,53 +138,105 @@
       margin-bottom: 10px;
     }
     .loading {
-      color: #1e40af;
+      color: var(--text-info);
       font-weight: bold;
       animation: pulse 1.5s infinite;
     }
-    .error {
-      color: #dc2626;
-      font-weight: bold;
-    }
-    .success {
-      color: #15803d;
-      font-weight: bold;
-    }
+    .error { color: var(--text-error); font-weight: bold; }
+    .success { color: var(--text-success); font-weight: bold; }
     .log {
       background: #f1f5f9;
       padding: 10px;
       border-radius: 8px;
-      max-height: 150px;
+      max-height: 200px;
       overflow-y: auto;
       margin-top: 20px;
       font-size: 14px;
       text-align: right;
+    }
+    .search-box {
+      width: 100%;
+      max-width: 300px;
+    }
+    .pagination {
+      margin: 10px 0;
+      text-align: center;
+    }
+    .pagination button {
+      margin: 0 5px;
+      padding: 5px 10px;
+      font-size: 14px;
+    }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid var(--text-primary);
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-right: 10px; /* RTL */
     }
     @keyframes pulse {
       0% { opacity: 1; }
       50% { opacity: 0.5; }
       100% { opacity: 1; }
     }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .dark-toggle {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: var(--text-primary);
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      z-index: 1000;
+    }
+    @media (max-width: 768px) {
+      .box { width: 100%; padding: 20px; }
+      table { font-size: 14px; }
+      th, td { padding: 5px; min-width: 80px; }
+      .pagination button { padding: 8px 12px; }
+    }
   </style>
 </head>
 <body>
-  <h1>📊 نظام قراءة Excel واستخراج نصوص</h1>
+  <button class="dark-toggle" onclick="toggleDarkMode()" aria-label="تبديل الوضع الداكن">🌙</button>
+  <h1>📊 نظام قراءة Excel واستخراج نصوص - الإصدار الاحترافي</h1>
 
   <div class="box">
-    <h3>📁 ارفع ملف Excel</h3>
-    <input type="file" id="excelInput" accept=".xlsx,.xls" />
+    <h3>📁 رفع ومعالجة ملف Excel</h3>
+    <input type="file" id="excelInput" accept=".xlsx,.xls" aria-label="رفع ملف Excel" />
     <p id="excelStatus">لم يتم رفع ملف بعد</p>
-    <button onclick="exportToExcel()">تصدير كـ Excel</button>
-    <button onclick="clearData()">مسح البيانات</button>
-    <table id="excelTable"></table>
+    <input type="text" id="searchInput" class="search-box" placeholder="🔍 ابحث في الجدول..." onkeyup="searchTable()" />
+    <div>
+      <button onclick="exportToExcel()">تصدير كـ Excel</button>
+      <button onclick="exportToCSV()">تصدير كـ CSV</button>
+      <button onclick="printTable()">طباعة الجدول</button>
+      <button onclick="addNewRow()">إضافة صف جديد</button>
+      <button onclick="clearData()">مسح البيانات</button>
+    </div>
+    <div class="pagination" id="pagination"></div>
+    <table id="excelTable" aria-label="جدول البيانات">
+      <thead id="tableHead"></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
 
     <hr />
 
-    <h3>🖼 ارفع صورة</h3>
-    <input type="file" id="imageInput" accept="image/*" />
+    <h3>🖼 رفع صورة واستخراج نص (OCR)</h3>
+    <input type="file" id="imageInput" accept="image/*" aria-label="رفع صورة" />
     <div class="preview" id="imagePreview">لم يتم رفع صورة بعد</div>
     <p id="ocrStatus"></p>
-    <div id="textPreview" class="preview"></div>
+    <div class="preview" id="textPreview">
+      <textarea id="editableText" rows="5" style="width: 100%; display: none;" placeholder="النص المستخرج هنا... يمكن تعديله قبل الإضافة" aria-label="تحرير النص"></textarea>
+    </div>
     <button id="confirmText" style="display: none;" onclick="addTextToTable()">تأكيد إضافة النص</button>
     <div id="log" class="log"></div>
   </div>
@@ -152,41 +245,97 @@
     // المتغيرات الأساسية
     const excelInput = document.getElementById("excelInput");
     const excelTable = document.getElementById("excelTable");
+    const tableHead = document.getElementById("tableHead");
+    const tableBody = document.getElementById("tableBody");
     const excelStatus = document.getElementById("excelStatus");
+    const searchInput = document.getElementById("searchInput");
     const imageInput = document.getElementById("imageInput");
     const imagePreview = document.getElementById("imagePreview");
     const ocrStatus = document.getElementById("ocrStatus");
     const textPreview = document.getElementById("textPreview");
+    const editableText = document.getElementById("editableText");
     const confirmTextBtn = document.getElementById("confirmText");
     const logDiv = document.getElementById("log");
+    const paginationDiv = document.getElementById("pagination");
     let excelData = [];
     let extractedText = null;
+    let currentPage = 1;
+    const rowsPerPage = 10;
+    let allHeaders = [];
+    const maxRows = 1000; // حد أقصى للأداء
 
-    // إضافة سجل
+    // تحميل البيانات من localStorage
+    function loadFromStorage() {
+      try {
+        const saved = localStorage.getItem('excelData');
+        if (saved) {
+          excelData = JSON.parse(saved);
+          if (excelData.length > 0) {
+            allHeaders = excelData[0];
+            displayTable(excelData);
+            addToLog("تم تحميل البيانات من التخزين", "success");
+          }
+        }
+      } catch (err) {
+        addToLog("خطأ في تحميل البيانات: " + err.message, "error");
+      }
+    }
+
+    // حفظ في localStorage
+    function saveToStorage() {
+      if (excelData.length > maxRows) {
+        addToLog("تم تجاهل الحفظ: تجاوز الحد الأقصى للصفوف", "error");
+        return;
+      }
+      localStorage.setItem('excelData', JSON.stringify(excelData));
+    }
+
+    // تبديل الوضع الداكن
+    function toggleDarkMode() {
+      document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    }
+
+    // إضافة سجل (مع debounce)
+    let logTimeout;
     function addToLog(message, type = "info") {
-      const logEntry = document.createElement("p");
-      logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-      logEntry.style.color = type === "error" ? "#dc2626" : type === "success" ? "#15803d" : "#1e40af";
-      logDiv.appendChild(logEntry);
-      logDiv.scrollTop = logDiv.scrollHeight;
+      clearTimeout(logTimeout);
+      logTimeout = setTimeout(() => {
+        const logEntry = document.createElement("p");
+        logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+        logEntry.className = type;
+        logDiv.appendChild(logEntry);
+        logDiv.scrollTop = logDiv.scrollHeight;
+        if (logDiv.children.length > 50) logDiv.removeChild(logDiv.firstChild); // حد للـ logs
+      }, 100);
     }
 
     // فحص تحميل المكتبات
-    window.addEventListener("load", () => {
-      if (!window.XLSX) addToLog("خطأ: مكتبة XLSX لم تتحمل. تحقق من الاتصال", "error");
-      if (!window.Tesseract) addToLog("خطأ: مكتبة Tesseract لم تتحمل. تحقق من الاتصال", "error");
+    window.addEventListener("load", async () => {
+      loadFromStorage();
+      if (!window.XLSX) {
+        addToLog("خطأ: مكتبة XLSX لم تتحمل. تحقق من الاتصال بالإنترنت.", "error");
+      } else {
+        addToLog("تم تحميل مكتبة XLSX بنجاح", "success");
+      }
+      if (!window.Tesseract) {
+        addToLog("خطأ: مكتبة Tesseract لم تتحمل. تحقق من الاتصال بالإنترنت.", "error");
+      } else {
+        addToLog("تم تحميل مكتبة Tesseract بنجاح", "success");
+      }
     });
 
     // قراءة ملف Excel
     excelInput.addEventListener("change", (e) => {
       const file = e.target.files[0];
-      if (!file || !file.name.match(/\.(xlsx|xls)$/)) {
-        excelStatus.textContent = "⚠ اختر ملف Excel صالح (.xlsx أو .xls)";
+      if (!file || !file.name.match(/\.(xlsx|xls)$/i) || file.size > 10 * 1024 * 1024) {
+        excelStatus.textContent = "⚠ اختر ملف Excel صالح (أقل من 10 ميجابايت)";
         excelStatus.className = "error";
         addToLog("ملف غير صالح", "error");
         return;
       }
 
+      excelStatus.innerHTML = "🔄 قراءة الملف <span class='spinner'></span>";
+      excelStatus.className = "loading";
       const reader = new FileReader();
       reader.onload = (event) => {
         try {
@@ -195,183 +344,22 @@
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
           excelData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-          excelStatus.textContent = "✅ تم قراءة الملف بنجاح";
+          if (excelData.length > maxRows) {
+            excelData = excelData.slice(0, maxRows);
+            addToLog(`تم تقصير البيانات إلى ${maxRows} صف`, "info");
+          }
+          allHeaders = excelData[0] || ['عمود 1', 'عمود 2', 'عمود 3', 'عمود 4', 'عمود 5'];
+          excelStatus.textContent = `✅ تم قراءة الملف (${excelData.length} صف)`;
           excelStatus.className = "success";
-          addToLog("تم قراءة الملف بنجاح", "success");
-          displayTable(excelData.slice(0, 5));
+          addToLog(`تم قراءة ${excelData.length} صف من ${sheetName}`, "success");
+          saveToStorage();
+          displayTable(excelData);
         } catch (err) {
           excelStatus.textContent = `❌ خطأ في قراءة الملف: ${err.message}`;
           excelStatus.className = "error";
-          addToLog(`خطأ: ${err.message}`, "error");
+          addToLog(`خطأ في قراءة Excel: ${err.message}`, "error");
         }
       };
-      reader.readAsArrayBuffer(file);
-    });
-
-    function displayTable(data) {
-      excelTable.innerHTML = "";
-      if (data.length === 0) return;
-      const headers = data[0].slice(0, 5);
-      const rows = data.slice(1, 6);
-      const trHeader = document.createElement("tr");
-      headers.forEach(header => {
-        const th = document.createElement("th");
-        th.textContent = header || "غير محدد";
-        trHeader.appendChild(th);
-      });
-      excelTable.appendChild(trHeader);
-      rows.forEach(row => {
-        const tr = document.createElement("tr");
-        row.slice(0, 5).forEach(cell => {
-          const td = document.createElement("td");
-          td.textContent = cell || "";
-          tr.appendChild(td);
-        });
-        excelTable.appendChild(tr);
-      });
-    }
-
-    // تصدير الجدول كملف Excel
-    function exportToExcel() {
-      if (excelData.length === 0) {
-        excelStatus.textContent = "⚠ لا توجد بيانات لتصديرها";
-        excelStatus.className = "error";
-        addToLog("لا توجد بيانات للتصدير", "error");
-        return;
-      }
-      const ws = XLSX.utils.json_to_sheet(excelData, { skipHeader: true });
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-      XLSX.writeFile(wb, `exported_data_${new Date().toISOString().slice(0,10)}.xlsx`);
-      excelStatus.textContent = "✅ تم تصدير الملف";
-      excelStatus.className = "success";
-      addToLog("تم تصدير البيانات", "success");
-    }
-
-    // مسح البيانات
-    function clearData() {
-      excelData = [];
-      extractedText = null;
-      excelTable.innerHTML = "";
-      imagePreview.innerHTML = "لم يتم رفع صورة بعد";
-      textPreview.innerHTML = "";
-      excelStatus.textContent = "لم يتم رفع ملف بعد";
-      ocrStatus.textContent = "";
-      confirmTextBtn.style.display = "none";
-      excelInput.value = "";
-      imageInput.value = "";
-      logDiv.innerHTML = "";
-      addToLog("تم المسح", "info");
-    }
-
-    // معالجة الصورة
-    imageInput.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (!file || !file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) {
-        ocrStatus.textContent = "⚠ اختر صورة صالحة (أقل من 5 ميجابايت)";
-        ocrStatus.className = "error";
-        addToLog("صورة غير صالحة", "error");
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const originalImage = e.target.result;
-        imagePreview.innerHTML = `<img src="${originalImage}" alt="صورة" />`;
-        processImage(originalImage, (processedImage) => extractText(processedImage, file.name));
-      };
-      reader.readAsDataURL(file);
-    });
-
-    function processImage(imageData, callback) {
-      const img = new Image();
-      img.src = imageData;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const maxDimension = 600; // تقليل الحد الأقصى لتسريع المعالجة
-        let { width, height } = img;
-        if (width > maxDimension || height > maxDimension) {
-          const ratio = Math.min(maxDimension / width, maxDimension / height);
-          width *= ratio;
-          height *= ratio;
-        }
-        canvas.width = width;
-        canvas.height = height;
-        ctx.drawImage(img, 0, 0, width, height);
-        const imageDataCtx = ctx.getImageData(0, 0, width, height);
-        const data = imageDataCtx.data;
-        for (let i = 0; i < data.length; i += 4) {
-          const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-          data[i] = data[i + 1] = data[i + 2] = avg > 150 ? 255 : 0; // تباين أعلى
-        }
-        ctx.putImageData(imageDataCtx, 0, 0);
-        callback(canvas.toDataURL('image/png', 0.7)); // تقليل جودة لتسريع
-      };
-    }
-
-    // استخراج النص
-    async function extractText(imageData, fileName) {
-      ocrStatus.innerHTML = `🔄 تحليل ${fileName}... 0%`;
-      ocrStatus.className = "loading";
-      addToLog(`بدء تحليل ${fileName}`, "info");
-
-      try {
-        const worker = await Tesseract.createWorker('ara', 1, {
-          langPath: 'https://tessdata.projectnaptha.com/4.0.0_best/ara.traineddata.gz',
-          workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.2/dist/worker.min.js',
-          corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.0.0/tesseract-core.wasm.js',
-          tessedit_pageseg_mode: 3,
-          logger: (m) => {
-            addToLog(`حالة: ${m.status}, تقدم: ${Math.round(m.progress * 100)}%`, "info");
-            if (m.status) ocrStatus.innerHTML = `🔄 تحليل ${fileName}... ${Math.round(m.progress * 100)}%`;
-          }
-        });
-
-        const { data: { text } } = await worker.recognize(imageData);
-        await worker.terminate();
-
-        extractedText = text.trim();
-        if (!extractedText) {
-          ocrStatus.textContent = `⚠ لا نص مستخرج من ${fileName}. جرب صورة أوضح`;
-          ocrStatus.className = "error";
-          addToLog(`لا نص من ${fileName}`, "error");
-          return;
-        }
-
-        ocrStatus.textContent = `✅ تم استخراج نص من ${fileName}`;
-        ocrStatus.className = "success";
-        addToLog(`تم استخراج نص من ${fileName}`, "success");
-        textPreview.innerHTML = `<h4>النص:</h4><p>${extractedText.replace(/\n/g, '<br>')}</p>`;
-        confirmTextBtn.style.display = "block";
-      } catch (err) {
-        ocrStatus.textContent = `❌ خطأ في ${fileName}: ${err.message}`;
-        ocrStatus.className = "error";
-        addToLog(`خطأ: ${err.message}`, "error");
-      }
-    }
-
-    // إضافة النص للجدول
-    function addTextToTable() {
-      if (!extractedText) {
-        ocrStatus.textContent = "⚠ لا نص لإضافته";
-        ocrStatus.className = "error";
-        addToLog("لا نص للإضافة", "error");
-        return;
-      }
-      const row = extractedText.split(/\n|،|,|\s{2,}/).filter(p => p.trim()).slice(0, 5);
-      if (excelData.length === 0) excelData = [[]];
-      excelData.push(row);
-      displayTable(excelData);
-      textPreview.innerHTML = "";
-      confirmTextBtn.style.display = "none";
-      addToLog("تم إضافة النص", "success");
-    }
-
-    // تحليل النص
-    function parseTextToRow(text, headers) {
-      return text.split(/\n|،|,|\s{2,}/).filter(p => p.trim()).slice(0, headers.length || 5);
-    }
-  </script>
-</body>
-</html>
+      reader.onerror = () => {
+        excelStatus.textContent = "❌ خطأ في قراءة الملف";
+        excelStatus.className
