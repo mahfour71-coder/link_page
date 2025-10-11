@@ -289,7 +289,7 @@
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        const maxDimension = 500; // تقليل لتسريع
+        const maxDimension = 600; // تقليل الحد الأقصى لتسريع المعالجة
         let { width, height } = img;
         if (width > maxDimension || height > maxDimension) {
           const ratio = Math.min(maxDimension / width, maxDimension / height);
@@ -303,10 +303,10 @@
         const data = imageDataCtx.data;
         for (let i = 0; i < data.length; i += 4) {
           const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-          data[i] = data[i + 1] = data[i + 2] = avg > 128 ? 255 : 0;
+          data[i] = data[i + 1] = data[i + 2] = avg > 150 ? 255 : 0; // تباين أعلى
         }
         ctx.putImageData(imageDataCtx, 0, 0);
-        callback(canvas.toDataURL('image/png', 0.8));
+        callback(canvas.toDataURL('image/png', 0.7)); // تقليل جودة لتسريع
       };
     }
 
@@ -318,13 +318,13 @@
 
       try {
         const worker = await Tesseract.createWorker('ara', 1, {
-          langPath: 'https://raw.githubusercontent.com/naptha/tessdata/gh-pages/4.0.0/', // رابط جديد بدون .gz
+          langPath: 'https://tessdata.projectnaptha.com/4.0.0_best/ara.traineddata.gz',
           workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.2/dist/worker.min.js',
           corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.0.0/tesseract-core.wasm.js',
           tessedit_pageseg_mode: 3,
           logger: (m) => {
             addToLog(`حالة: ${m.status}, تقدم: ${Math.round(m.progress * 100)}%`, "info");
-            ocrStatus.innerHTML = `🔄 حالة: ${m.status}... ${Math.round(m.progress * 100)}%`;
+            if (m.status) ocrStatus.innerHTML = `🔄 تحليل ${fileName}... ${Math.round(m.progress * 100)}%`;
           }
         });
 
