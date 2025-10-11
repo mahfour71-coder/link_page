@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>📊 نظام ذكي لقراءة Excel واستخراج النصوص</title>
+  <title>📊 نظام قراءة Excel واستخراج نصوص</title>
 
   <!-- مكتبة قراءة Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -32,7 +32,7 @@
       padding: 30px;
       margin: 20px auto;
       width: 90%;
-      max-width: 900px;
+      max-width: 600px;
       transition: transform 0.3s ease;
     }
     .box:hover {
@@ -72,7 +72,7 @@
     }
     th, td {
       border: 1px solid #e2e8f0;
-      padding: 12px;
+      padding: 8px;
       text-align: center;
     }
     th {
@@ -92,7 +92,7 @@
       min-height: 100px;
     }
     img {
-      max-width: 100%;
+      max-width: 300px;
       border-radius: 10px;
       margin-bottom: 10px;
     }
@@ -113,7 +113,7 @@
       background: #f1f5f9;
       padding: 10px;
       border-radius: 8px;
-      max-height: 200px;
+      max-height: 150px;
       overflow-y: auto;
       margin-top: 20px;
       font-size: 14px;
@@ -127,11 +127,11 @@
   </style>
 </head>
 <body>
-  <h1>📊 نظام ذكي لقراءة Excel واستخراج النصوص</h1>
+  <h1>📊 نظام قراءة Excel واستخراج نصوص</h1>
 
   <div class="box">
     <h3>📁 ارفع ملف Excel</h3>
-    <input type="file" id="excelInput" accept=".xlsx,.xls" multiple />
+    <input type="file" id="excelInput" accept=".xlsx,.xls" />
     <p id="excelStatus">لم يتم رفع ملف بعد</p>
     <button onclick="exportToExcel()">تصدير كـ Excel</button>
     <button onclick="clearData()">مسح البيانات</button>
@@ -140,7 +140,7 @@
     <hr />
 
     <h3>🖼 ارفع صورة</h3>
-    <input type="file" id="imageInput" accept="image/*" multiple />
+    <input type="file" id="imageInput" accept="image/*" />
     <div class="preview" id="imagePreview">لم يتم رفع صورة بعد</div>
     <p id="ocrStatus"></p>
     <div id="textPreview" class="preview"></div>
@@ -173,64 +173,59 @@
 
     // فحص تحميل المكتبات
     window.addEventListener("load", () => {
-      if (!window.XLSX) {
-        addToLog("خطأ: مكتبة XLSX لم تتحمل. تحقق من الاتصال بالإنترنت", "error");
-      }
-      if (!window.Tesseract) {
-        addToLog("خطأ: مكتبة Tesseract لم تتحمل. تحقق من الاتصال بالإنترنت", "error");
-      }
+      if (!window.XLSX) addToLog("خطأ: مكتبة XLSX لم تتحمل. تحقق من الاتصال", "error");
+      if (!window.Tesseract) addToLog("خطأ: مكتبة Tesseract لم تتحمل. تحقق من الاتصال", "error");
     });
 
-    // قراءة ملفات Excel
-    excelInput.addEventListener("change", async (e) => {
-      const files = e.target.files;
-      if (!files.length) {
-        excelStatus.textContent = "⚠ الرجاء اختيار ملف Excel";
+    // قراءة ملف Excel
+    excelInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file || !file.name.match(/\.(xlsx|xls)$/)) {
+        excelStatus.textContent = "⚠ اختر ملف Excel صالح (.xlsx أو .xls)";
         excelStatus.className = "error";
-        addToLog("لم يتم اختيار ملف Excel", "error");
+        addToLog("ملف غير صالح", "error");
         return;
       }
 
-      for (const file of files) {
-        if (!file.name.match(/\.(xlsx|xls)$/)) {
-          excelStatus.textContent = `⚠ الملف ${file.name} يجب أن يكون .xlsx أو .xls`;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const data = new Uint8Array(event.target.result);
+          const workbook = XLSX.read(data, { type: "array" });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          excelData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+          excelStatus.textContent = "✅ تم قراءة الملف بنجاح";
+          excelStatus.className = "success";
+          addToLog("تم قراءة الملف بنجاح", "success");
+          displayTable(excelData.slice(0, 5)); // عرض 5 صفوف بس
+        } catch (err) {
+          excelStatus.textContent = `❌ خطأ في قراءة الملف: ${err.message}`;
           excelStatus.className = "error";
-          addToLog(`ملف غير صالح: ${file.name}`, "error");
-          continue;
+          addToLog(`خطأ: ${err.message}`, "error");
         }
-
-        const reader = new FileReader();
-        reader.onload = function(event) {
-          try {
-            const data = new Uint8Array(event.target.result);
-            const workbook = XLSX.read(data, { type: "array" });
-            const sheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[sheetName];
-            const newData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-            excelData = excelData.concat(newData);
-            excelStatus.textContent = `✅ تم قراءة ${files.length} ملف بنجاح`;
-            excelStatus.className = "success";
-            addToLog(`تم قراءة ملف ${file.name} بنجاح`, "success");
-            displayTable(excelData);
-          } catch (err) {
-            excelStatus.textContent = `❌ خطأ في قراءة ${file.name}: جرب ملف آخر`;
-            excelStatus.className = "error";
-            addToLog(`خطأ في قراءة ${file.name}: ${err.message}`, "error");
-          }
-        };
-        reader.readAsArrayBuffer(file);
-      }
+      };
+      reader.readAsArrayBuffer(file);
     });
 
     function displayTable(data) {
       excelTable.innerHTML = "";
       if (data.length === 0) return;
-      data.forEach((row, i) => {
+      const headers = data[0].slice(0, 5); // عرض 5 أعمدة بس
+      const rows = data.slice(1, 6); // عرض 5 صفوف بس
+      const trHeader = document.createElement("tr");
+      headers.forEach(header => {
+        const th = document.createElement("th");
+        th.textContent = header || "غير محدد";
+        trHeader.appendChild(th);
+      });
+      excelTable.appendChild(trHeader);
+      rows.forEach(row => {
         const tr = document.createElement("tr");
-        row.forEach((cell) => {
-          const el = document.createElement(i === 0 ? "th" : "td");
-          el.textContent = cell || "";
-          tr.appendChild(el);
+        row.slice(0, 5).forEach(cell => {
+          const td = document.createElement("td");
+          td.textContent = cell || "";
+          tr.appendChild(td);
         });
         excelTable.appendChild(tr);
       });
@@ -248,9 +243,9 @@
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
       XLSX.writeFile(wb, `exported_data_${new Date().toISOString().slice(0,10)}.xlsx`);
-      excelStatus.textContent = "✅ تم تصدير الملف بنجاح";
+      excelStatus.textContent = "✅ تم تصدير الملف";
       excelStatus.className = "success";
-      addToLog("تم تصدير البيانات بنجاح", "success");
+      addToLog("تم تصدير البيانات", "success");
     }
 
     // مسح البيانات
@@ -266,62 +261,35 @@
       excelInput.value = "";
       imageInput.value = "";
       logDiv.innerHTML = "";
-      addToLog("تم مسح كافة البيانات", "info");
+      addToLog("تم المسح", "info");
     }
 
-    // معالجة الصور المتعددة بشكل متتالي
-    async function processImagesSequentially(files) {
-      imagePreview.innerHTML = "";
-      for (const file of files) {
-        if (!file.type.startsWith("image/")) {
-          ocrStatus.textContent = `⚠ الملف ${file.name} يجب أن يكون صورة`;
-          ocrStatus.className = "error";
-          addToLog(`ملف غير صالح: ${file.name}`, "error");
-          continue;
-        }
-        if (file.size > 5 * 1024 * 1024) {
-          ocrStatus.textContent = `⚠ الملف ${file.name} كبير جدًا (الحد الأقصى 5 ميجابايت)`;
-          ocrStatus.className = "error";
-          addToLog(`ملف كبير جدًا: ${file.name}`, "error");
-          continue;
-        }
-
-        await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            const originalImage = e.target.result;
-            processImage(originalImage, (processedImage) => {
-              const imgDiv = document.createElement("div");
-              imgDiv.innerHTML = `<img src="${originalImage}" alt="Original image" />`;
-              imagePreview.appendChild(imgDiv);
-              extractText(processedImage, file.name);
-              resolve();
-            });
-          };
-          reader.readAsDataURL(file);
-        });
-      }
-    }
-
-    imageInput.addEventListener("change", () => {
-      const files = imageInput.files;
-      if (!files.length) {
-        ocrStatus.textContent = "⚠ الرجاء اختيار صورة";
+    // معالجة الصورة
+    imageInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file || !file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) {
+        ocrStatus.textContent = "⚠ اختر صورة صالحة (أقل من 5 ميجابايت)";
         ocrStatus.className = "error";
-        addToLog("لم يتم اختيار صورة", "error");
+        addToLog("صورة غير صالحة", "error");
         return;
       }
-      processImagesSequentially(files);
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const originalImage = e.target.result;
+        imagePreview.innerHTML = `<img src="${originalImage}" alt="صورة" />`;
+        processImage(originalImage, (processedImage) => extractText(processedImage, file.name));
+      };
+      reader.readAsDataURL(file);
     });
 
-    // معالجة الصورة لتحسين الدقة
     function processImage(imageData, callback) {
       const img = new Image();
       img.src = imageData;
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        const maxDimension = 800; // تقليص الحد الأقصى لتسريع المعالجة
+        const maxDimension = 800;
         let { width, height } = img;
         if (width > maxDimension || height > maxDimension) {
           const ratio = Math.min(maxDimension / width, maxDimension / height);
@@ -331,43 +299,30 @@
         canvas.width = width;
         canvas.height = height;
         ctx.drawImage(img, 0, 0, width, height);
-
-        // تحويل إلى grayscale وتحسين التباين
-        const imageDataCtx = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const imageDataCtx = ctx.getImageData(0, 0, width, height);
         const data = imageDataCtx.data;
         for (let i = 0; i < data.length; i += 4) {
           const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-          data[i] = data[i + 1] = data[i + 2] = avg > 128 ? 255 : 0; // تباين عالي
+          data[i] = data[i + 1] = data[i + 2] = avg > 128 ? 255 : 0;
         }
         ctx.putImageData(imageDataCtx, 0, 0);
-
-        // فحص جودة الصورة
-        if (canvas.width < 300 || canvas.height < 300) {
-          ocrStatus.textContent = "⚠ الصورة صغيرة جدًا، جرب صورة أكبر لدقة أعلى";
-          ocrStatus.className = "error";
-          addToLog("الصورة صغيرة جدًا، قد تؤثر على دقة الـ OCR", "error");
-        }
         callback(canvas.toDataURL('image/png', 0.8));
       };
     }
 
-    // استخراج النص بدقة عالية
+    // استخراج النص
     async function extractText(imageData, fileName) {
-      ocrStatus.innerHTML = `🔄 جاري تحليل الصورة ${fileName}... 0%`;
+      ocrStatus.innerHTML = `🔄 تحليل ${fileName}... 0%`;
       ocrStatus.className = "loading";
-      addToLog(`بدء تحليل الصورة ${fileName}`, "info");
+      addToLog(`بدء تحليل ${fileName}`, "info");
 
       try {
         const worker = await Tesseract.createWorker('ara', 1, {
           langPath: 'https://tessdata.projectnaptha.com/4.0.0_best/ara.traineddata.gz',
           workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.2/dist/worker.min.js',
           corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.0.0/tesseract-core.wasm.js',
-          tessedit_pageseg_mode: '6',
-          logger: (m) => {
-            if (m.status === 'recognizing text') {
-              ocrStatus.innerHTML = `🔄 جاري تحليل الصورة ${fileName}... ${Math.round(m.progress * 100)}%`;
-            }
-          }
+          tessedit_pageseg_mode: 3, // Auto mode للتعامل مع الخلفيات
+          logger: (m) => m.status === 'recognizing text' && (ocrStatus.innerHTML = `🔄 تحليل ${fileName}... ${Math.round(m.progress * 100)}%`)
         });
 
         const { data: { text } } = await worker.recognize(imageData);
@@ -375,82 +330,44 @@
 
         extractedText = text.trim();
         if (!extractedText) {
-          ocrStatus.innerHTML = `⚠ لم يتم استخراج أي نص من ${fileName}. جرب صورة أوضح`;
+          ocrStatus.textContent = `⚠ لا نص مستخرج من ${fileName}. جرب صورة أوضح`;
           ocrStatus.className = "error";
-          addToLog(`لم يتم استخراج نص من ${fileName}`, "error");
+          addToLog(`لا نص من ${fileName}`, "error");
           return;
         }
 
-        ocrStatus.innerHTML = `✅ تم استخراج النص من ${fileName}`;
+        ocrStatus.textContent = `✅ تم استخراج نص من ${fileName}`;
         ocrStatus.className = "success";
-        addToLog(`تم استخراج النص من ${fileName} بنجاح`, "success");
-
-        // معاينة النص قبل الإضافة
-        textPreview.innerHTML = `<h4>النص المستخرج:</h4><p>${extractedText.replace(/\n/g, '<br>')}</p>`;
+        addToLog(`تم استخراج نص من ${fileName}`, "success");
+        textPreview.innerHTML = `<h4>النص:</h4><p>${extractedText.replace(/\n/g, '<br>')}</p>`;
         confirmTextBtn.style.display = "block";
       } catch (err) {
-        ocrStatus.innerHTML = `❌ خطأ في تحليل ${fileName}: جرب صورة أوضح أو تحقق من الاتصال`;
+        ocrStatus.textContent = `❌ خطأ في ${fileName}: ${err.message}`;
         ocrStatus.className = "error";
-        addToLog(`خطأ في تحليل ${fileName}: ${err.message}`, "error");
+        addToLog(`خطأ: ${err.message}`, "error");
       }
     }
 
-    // إضافة النص إلى الجدول بعد التأكيد
+    // إضافة النص للجدول
     function addTextToTable() {
       if (!extractedText) {
-        ocrStatus.textContent = "⚠ لا يوجد نص لإضافته";
+        ocrStatus.textContent = "⚠ لا نص لإضافته";
         ocrStatus.className = "error";
-        addToLog("لا يوجد نص لإضافته إلى الجدول", "error");
+        addToLog("لا نص للإضافة", "error");
         return;
       }
-
-      const parsedRow = parseTextToRow(extractedText, excelData[0] || []);
-      if (excelData.length > 0) {
-        excelData.push(parsedRow);
-      } else {
-        excelData = [["نص مستخرج"], parsedRow];
-      }
+      const row = extractedText.split(/\n|،|,|\s{2,}/).filter(p => p.trim()).slice(0, 5); // 5 أعمدة بس
+      if (excelData.length === 0) excelData = [[]];
+      excelData.push(row);
       displayTable(excelData);
       textPreview.innerHTML = "";
       confirmTextBtn.style.display = "none";
-      addToLog("تم إضافة النص إلى الجدول", "success");
+      addToLog("تم إضافة النص", "success");
     }
 
-    // تحليل ذكي للنص
+    // تحليل النص
     function parseTextToRow(text, headers) {
-      let row = new Array(headers.length || 1).fill("");
-
-      // محاولة استخراج key-value pairs
-      const pairs = {};
-      const regex = /(\w+|\S+?):\s*([^\n]+)/g;
-      let match;
-      while ((match = regex.exec(text)) !== null) {
-        pairs[match[1].trim()] = match[2].trim();
-      }
-
-      // تطابق مع headers
-      if (Object.keys(pairs).length > 0) {
-        headers.forEach((header, index) => {
-          const key = header?.trim();
-          if (key && pairs[key]) {
-            row[index] = pairs[key];
-          }
-        });
-        if (row.every(cell => cell === "")) {
-          row[0] = text;
-        }
-      } else {
-        // تقسيم النص بناءً على فواصل (أسطر، فواصل، مسافات)
-        const parts = text.split(/\n|،|,|\s{2,}/).filter(part => part.trim() !== "");
-        parts.forEach((part, index) => {
-          if (index < row.length) {
-            row[index] = part.trim();
-          } else if (index === row.length) {
-            row.push(part.trim());
-          }
-        });
-      }
-      return row;
+      return text.split(/\n|،|,|\s{2,}/).filter(p => p.trim()).slice(0, headers.length || 5);
     }
   </script>
 </body>
